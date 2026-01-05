@@ -9,6 +9,17 @@ jest.mock('../db', () => ({
 const pool = require('../db');
 
 describe('Todo API Endpoints', () => {
+  // Suppress console.error during tests
+  let consoleErrorSpy;
+
+  beforeAll(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
   // Clear all mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();

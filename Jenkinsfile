@@ -2,7 +2,28 @@ pipeline{
 
     agent { label 'node1' }
 
+    environment{
+        AWS_REGION = 'ap-south-1'
+        AWS_ACCOUNT = '759210286431'
+        ECR_URL = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        IMAGE_NAME = 'todo-backend'
+        ECR_REPO = "${ECR_URL}/${IMAGE_NAME}"
+    }
+
     stages{
+
+        /* =========================
+            CHECKOUT REPOSITORY
+           ========================= */
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.IMAGE_TAG = env.GIT_COMMIT.take(7)
+                }
+            }
+        }
 
         /* =========================
             DEBUG CONTEXT (MANDATORY)
@@ -27,7 +48,6 @@ pipeline{
             }
         }
 
-
         /* =========================
             UNIT TESTS (ALWAYS)
            ========================= */
@@ -37,7 +57,6 @@ pipeline{
                 sh 'npm test'
             }
         }
-
 
         /* =========================
             INTEGRATION TESTS
@@ -86,7 +105,7 @@ pipeline{
             ONLY AFTER MERGE TO DEVELOP
            ========================= */
 
-        stage('Build Docker Image and Push to Repository'){
+        stage('Build Docker Image'){
             when{
                 allOf {
                     expression { env.CHANGE_ID == null }   // NOT a PR
@@ -94,9 +113,45 @@ pipeline{
                 }
             }
             steps{
-                echo "Creating docker image and pushing to ecr..."
+                sh "docker build -t ${ECR_REPO}:${IMAGE_TAG} ."
+            } 
+        }
+
+        stage('Scan Image'){
+            when{
+                allOf {
+                    expression { env.CHANGE_ID == null }   // NOT a PR
+                    branch 'develop'
+                }
             }
-            
+            steps{
+                echo "Scanning image with Trivy"
+
+                sh """
+                    trivy image \
+                        --severity HIGH,CRITICAL \
+                        --exit-code 1 \
+                        --no-progress \
+                        ${ECR_REPO}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Push to ECR'){
+            when{
+                allOf {
+                    expression { env.CHANGE_ID == null }   // NOT a PR
+                    branch 'develop'
+                }
+            }
+            steps{
+                sh """
+                    aws ecr get-login-password --region=${AWS_REGION}\
+                    | docker login --username AWS --password-stdin ${ECR_URL}
+
+                    docker push ${ECR_REPO}:${IMAGE_TAG}
+                """
+            }
         }
         
     }

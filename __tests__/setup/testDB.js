@@ -7,7 +7,7 @@ const pool = new Pool({
   port: process.env.TEST_DB_PORT || process.env.DB_PORT || 5432,
   user: process.env.TEST_DB_USER || process.env.DB_USER || 'postgres',
   password: process.env.TEST_DB_PASSWORD || process.env.DB_PASSWORD || 'postgres',
-  database: process.env.TEST_DB_NAME || process.env.DB_NAME_TEST || 'todo_db_test',
+  database: process.env.TEST_DB_NAME || process.env.DB_NAME || 'todo_test_db',
 });
 
 // Setup test database

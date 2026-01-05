@@ -191,6 +191,19 @@ pipeline{
         }
 
 
-        
+        /* =========================
+            DEPLOY TO DEV ENVIRONMENT
+           ========================= */
+        stage('Deploy to Dev Environment'){
+            when{
+                allOf {
+                    expression { env.CHANGE_ID == null }   // NOT a PR
+                    branch 'develop'
+                }
+            }
+            steps{
+                echo 'Deploying to dev environment...'
+            }
+        }
     }
 }

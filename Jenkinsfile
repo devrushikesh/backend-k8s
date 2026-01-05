@@ -48,6 +48,8 @@ pipeline{
             }
         }
 
+
+
         /* =========================
             UNIT TESTS (ALWAYS)
            ========================= */
@@ -55,6 +57,28 @@ pipeline{
         stage('Unit Testing'){
             steps{
                 sh 'npm test'
+            }
+        }
+
+        /* =========================
+            FS SCAN (TRIVY)
+           ========================= */
+
+        stage('FileSystem Scan'){
+            when{
+                anyOf{
+                    expression { env.CHANGE_ID != null }
+                    branch 'feature/*'
+                }
+            }
+            steps{
+                sh """
+                    trivy fs \
+                    --severity HIGH,CRITICAL \
+                    --exit-code 1 \
+                    --no-progress \
+                    .
+                """
             }
         }
 
@@ -117,6 +141,9 @@ pipeline{
             } 
         }
 
+        /* =========================
+            IMAGE SCAN (TRIVY)
+           ========================= */
         stage('Scan Image'){
             when{
                 allOf {
@@ -138,6 +165,9 @@ pipeline{
             }
         }
 
+        /* =========================
+            PUSH IMAGE TO ECR
+           ========================= */
         stage('Push to ECR'){
             when{
                 allOf {
@@ -153,7 +183,14 @@ pipeline{
                     docker push ${ECR_REPO}:${IMAGE_TAG}
                 """
             }
+            post{
+                always {
+                    sh "docker rmi -f ${ECR_REPO}:${IMAGE_TAG} || true"
+                }
+            }
         }
+
+
         
     }
 }

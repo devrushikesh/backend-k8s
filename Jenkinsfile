@@ -6,15 +6,22 @@ pipeline{
 
         stage('Clone the code'){
             steps{
-                echo "Cloning the code"
+                echo "Cloning the code from branch ${env.BRANCH_NAME}"
             }
         }
 
-        stage('Print the branch'){
+        stage('Install Packages'){
             steps{
-                echo "Branch ${env.BRANCH_NAME}"
+                sh 'npm install'
             }
         }
+
+        stage('Unit Testing'){
+            steps{
+                sh 'npm test'
+            }
+        }
+
 
     }
 

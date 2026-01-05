@@ -1,12 +1,12 @@
 const request = require('supertest');
-const app = require('../app');
+const app = require('../../app');
 
 // Mock the database pool
-jest.mock('../db', () => ({
+jest.mock('../../db', () => ({
   query: jest.fn(),
 }));
 
-const pool = require('../db');
+const pool = require('../../db');
 
 describe('Todo API Endpoints', () => {
   // Suppress console.error during tests

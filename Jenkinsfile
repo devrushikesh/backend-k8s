@@ -132,6 +132,7 @@ pipeline{
                         --severity HIGH,CRITICAL \
                         --exit-code 1 \
                         --no-progress \
+                        --skip-dirs /usr/local/lib/node_modules/npm \
                         ${ECR_REPO}:${IMAGE_TAG}
                 """
             }

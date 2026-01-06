@@ -101,7 +101,7 @@ pipeline{
                         --name test-postgres \
                         -e POSTGRES_USER=postgres \
                         -e POSTGRES_PASSWORD=postgres \
-                        -e POSTGRES_DB=todo_test_db \
+                        -e POSTGRES_DB=todo_db_test \
                         -p 5432:5432 \
                         postgres:15
                 '''
@@ -112,7 +112,7 @@ pipeline{
                     export DB_PORT=5432
                     export DB_USER=postgres
                     export DB_PASSWORD=postgres
-                    export DB_NAME=todo_test_db
+                    export DB_NAME=todo_db_test
 
                     npm run test:integration
                 '''

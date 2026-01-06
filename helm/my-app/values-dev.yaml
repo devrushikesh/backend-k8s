@@ -19,7 +19,7 @@ env:
   DB_PASSWORD: root
   DB_NAME: todo_db
   DB_NAME_TEST: todo_db_test
-  PORT: "5000"
+  PORT: "3001"
 
 resources:
   limits:

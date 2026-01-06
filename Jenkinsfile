@@ -204,12 +204,22 @@ pipeline{
             steps{
                 echo 'Deploying to dev environment of k8s...'
 
+                script{
+                    env.ECR_TOKEN = sh(script: "aws ecr get-login-password --region ap-south-1", returnStdout: true).trim()
+                }
+
                 withCredentials([file(credentialsId: 'jenkins-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
+                        echo "$ECR_TOKEN" | kubectl create secret docker-registry ecr-secret \
+                        --docker-server=759210286431.dkr.ecr.ap-south-1.amazonaws.com \
+                        --docker-username=AWS \
+                        --docker-password-stdin \
+                        -n dev \
+                        --dry-run=client -o yaml | kubectl apply -f -
+
                         helm upgrade --install my-app helm/my-app \
                         -n dev \
                         --set image.tag=${IMAGE_TAG}
-
                     """
                 }
 

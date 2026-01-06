@@ -1,6 +1,7 @@
 const request = require('supertest');
 const app = require('../../app');
 const { pool, setupTestDB, teardownTestDB, closeTestDB } = require('../setup/testDB');
+const db = require('../../db');
 
 describe('Todo API Integration Tests', () => {
   // Setup test database before all tests
@@ -13,9 +14,10 @@ describe('Todo API Integration Tests', () => {
     await teardownTestDB();
   });
 
-  // Close database connection after all tests
+  // Close database connections after all tests
   afterAll(async () => {
     await closeTestDB();
+    await db.closePool(); // Close the app's db pool
   });
 
   describe('GET /api/health', () => {
@@ -23,10 +25,9 @@ describe('Todo API Integration Tests', () => {
       const response = await request(app).get('/api/health');
       
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        status: 'OK',
-        message: 'Server is running',
-      });
+      expect(response.body.status).toBe('OK');
+      expect(response.body.message).toBe('Server is running');
+      expect(response.body.timestamp).toBeDefined();
     });
   });
 

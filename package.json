@@ -24,7 +24,10 @@
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/__tests__/setup/"
-    ]
+    ],
+    "setupFilesAfterEnv": [],
+    "forceExit": true,
+    "detectOpenHandles": false
   },
   "keywords": [],
   "author": "",

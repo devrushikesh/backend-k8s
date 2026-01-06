@@ -43,7 +43,7 @@ const setupTestDB = async () => {
           FOR EACH ROW 
           EXECUTE FUNCTION update_updated_at_column();
     `);
-    console.log('✓ Test database schema created');
+    // console.log('✓ Test database schema created'); // Suppressed for cleaner test output
   } catch (error) {
     console.error('✗ Error setting up test database:', error.message);
     throw error;

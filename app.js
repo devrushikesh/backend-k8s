@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const pool = require('./db');
+const { pool, checkDatabaseConnection } = require('./db');
 
 const app = express();
 
@@ -125,8 +125,39 @@ app.delete('/api/todos/:id', async (req, res) => {
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+app.get('/api/health', async (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Readiness check endpoint - checks DB connectivity
+app.get('/api/ready', async (req, res) => {
+  const isDbReady = await checkDatabaseConnection();
+  
+  if (isDbReady) {
+    res.status(200).json({ 
+      status: 'ready', 
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    res.status(503).json({ 
+      status: 'not ready', 
+      database: 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Liveness check endpoint - just checks if app is running
+app.get('/api/live', (req, res) => {
+  res.status(200).json({ 
+    status: 'alive',
+    timestamp: new Date().toISOString()
+  });
 });
 
 module.exports = app;

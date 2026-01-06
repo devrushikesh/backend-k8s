@@ -1,26 +1,123 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = new Pool({
+// Database configuration with connection pool settings
+const poolConfig = {
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
+  port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: false,
+  // Connection pool settings
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 5000, // Return error after 5 seconds if connection not established
+  // Retry configuration
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+};
+
+const pool = new Pool(poolConfig);
+
+// Handle pool errors gracefully - don't crash the application
+pool.on('error', (err, client) => {
+  // Log the error but don't exit - let Kubernetes handle it via health checks
+  console.error('Unexpected error on idle client:', err.message);
+  console.error('Stack:', err.stack);
+  // Client will be removed from pool automatically
 });
 
-async function waitForDB() {
-  while (true) {
-    try {
-      await pool.query('SELECT 1');
-      console.log('✅ Database connected');
-      break;
-    } catch (err) {
-      console.error('⏳ Database not ready, retrying in 5s...');
-      await new Promise(res => setTimeout(res, 5000));
+// Handle client connection events
+pool.on('connect', (client) => {
+  console.log('New client connected to database');
+});
+
+pool.on('acquire', (client) => {
+  console.log('Client acquired from pool');
+});
+
+pool.on('remove', (client) => {
+  console.log('Client removed from pool');
+});
+
+// Function to check database connectivity
+const checkDatabaseConnection = async () => {
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query('SELECT NOW()');
+    console.log('✓ Database connection verified at:', result.rows[0].now);
+    return true;
+  } catch (error) {
+    console.error('✗ Database connection failed:', error.message);
+    return false;
+  } finally {
+    if (client) {
+      client.release();
     }
   }
-}
+};
 
-module.exports = { pool, waitForDB };
+// Function to execute queries with retry logic
+const queryWithRetry = async (text, params, maxRetries = 3) => {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await pool.query(text, params);
+      return result;
+    } catch (error) {
+      lastError = error;
+      console.error(`Query attempt ${attempt}/${maxRetries} failed:`, error.message);
+      
+      // If it's a connection error and we have retries left, wait and retry
+      if (attempt < maxRetries && isRetryableError(error)) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+        console.log(`Retrying after ${delay}ms...`);
+        await sleep(delay);
+      } else {
+        throw error;
+      }
+    }
+  }
+  
+  throw lastError;
+};
+
+// Check if error is retryable
+const isRetryableError = (error) => {
+  const retryableCodes = [
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'ETIMEDOUT',
+    'ECONNRESET',
+    '57P03', // cannot_connect_now
+    '08006', // connection_failure
+    '08003', // connection_does_not_exist
+  ];
+  
+  return retryableCodes.some(code => 
+    error.code === code || error.message.includes(code)
+  );
+};
+
+// Helper function for delays
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Graceful shutdown
+const closePool = async () => {
+  try {
+    await pool.end();
+    console.log('Database pool closed');
+  } catch (error) {
+    console.error('Error closing database pool:', error);
+  }
+};
+
+module.exports = {
+  pool,
+  query: (text, params) => pool.query(text, params),
+  queryWithRetry,
+  checkDatabaseConnection,
+  closePool,
+};

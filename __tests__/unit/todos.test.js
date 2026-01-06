@@ -1,12 +1,15 @@
 const request = require('supertest');
 const app = require('../../app');
 
-// Mock the database pool
+// Mock the database module
 jest.mock('../../db', () => ({
-  query: jest.fn(),
+  pool: {
+    query: jest.fn(),
+  },
+  checkDatabaseConnection: jest.fn().mockResolvedValue(true),
 }));
 
-const pool = require('../../db');
+const { pool } = require('../../db');
 
 describe('Todo API Endpoints', () => {
   // Suppress console.error during tests
@@ -30,10 +33,9 @@ describe('Todo API Endpoints', () => {
       const response = await request(app).get('/api/health');
       
       expect(response.status).toBe(200);
-      expect(response.body).toEqual({
-        status: 'OK',
-        message: 'Server is running',
-      });
+      expect(response.body.status).toBe('OK');
+      expect(response.body.message).toBe('Server is running');
+      expect(response.body.timestamp).toBeDefined();
     });
   });
 

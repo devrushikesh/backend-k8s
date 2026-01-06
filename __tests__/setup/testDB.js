@@ -2,19 +2,21 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 // Use separate test database configuration
-const pool = new Pool({
+const testPool = new Pool({
   host: process.env.TEST_DB_HOST || process.env.DB_HOST || 'localhost',
   port: process.env.TEST_DB_PORT || process.env.DB_PORT || 5432,
   user: process.env.TEST_DB_USER || process.env.DB_USER || 'postgres',
   password: process.env.TEST_DB_PASSWORD || process.env.DB_PASSWORD || 'postgres',
-  database: process.env.TEST_DB_NAME || process.env.DB_NAME || 'todo_test_db',
+  database: process.env.TEST_DB_NAME || process.env.DB_NAME_TEST || 'todo_db_test',
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
 });
 
-// Setup test database
+// Setup test database schema
 const setupTestDB = async () => {
   try {
-    // Drop and recreate table for clean state
-    await pool.query(`
+    await testPool.query(`
       DROP TABLE IF EXISTS todos CASCADE;
       
       CREATE TABLE todos (
@@ -41,17 +43,17 @@ const setupTestDB = async () => {
           FOR EACH ROW 
           EXECUTE FUNCTION update_updated_at_column();
     `);
-    console.log('✓ Test database setup complete');
+    console.log('✓ Test database schema created');
   } catch (error) {
     console.error('✗ Error setting up test database:', error.message);
     throw error;
   }
 };
 
-// Clean up test database
+// Clean up test data between tests
 const teardownTestDB = async () => {
   try {
-    await pool.query('TRUNCATE TABLE todos RESTART IDENTITY CASCADE');
+    await testPool.query('TRUNCATE TABLE todos RESTART IDENTITY CASCADE');
   } catch (error) {
     console.error('Error cleaning up test database:', error);
     throw error;
@@ -60,11 +62,11 @@ const teardownTestDB = async () => {
 
 // Close pool connection
 const closeTestDB = async () => {
-  await pool.end();
+  await testPool.end();
 };
 
 module.exports = {
-  pool,
+  pool: testPool,
   setupTestDB,
   teardownTestDB,
   closeTestDB,

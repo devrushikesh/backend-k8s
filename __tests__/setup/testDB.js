@@ -3,11 +3,11 @@ require('dotenv').config();
 
 // Use separate test database configuration
 const testPool = new Pool({
-  host: process.env.TEST_DB_HOST || process.env.DB_HOST || 'localhost',
-  port: process.env.TEST_DB_PORT || process.env.DB_PORT || 5432,
-  user: process.env.TEST_DB_USER || process.env.DB_USER || 'postgres',
-  password: process.env.TEST_DB_PASSWORD || process.env.DB_PASSWORD || 'postgres',
-  database: process.env.TEST_DB_NAME || process.env.DB_NAME_TEST || 'todo_db_test',
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'todo_db_test',
   max: 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

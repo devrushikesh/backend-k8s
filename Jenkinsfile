@@ -202,7 +202,7 @@ pipeline{
                 }
             }
             steps{
-                echo 'Deploying to dev environment...'
+                echo 'Deploying to dev environment of k8s...'
             }
         }
     }

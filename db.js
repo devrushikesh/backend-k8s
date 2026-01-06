@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
 require('dotenv').config();
 
 // Database configuration with connection pool settings
@@ -27,18 +28,20 @@ pool.on('error', (err, client) => {
   // Client will be removed from pool automatically
 });
 
-// Handle client connection events
-pool.on('connect', (client) => {
-  console.log('New client connected to database');
-});
+// Handle client connection events (only log in non-test environment)
+if (!isTestEnv) {
+  pool.on('connect', (client) => {
+    console.log('New client connected to database');
+  });
 
-pool.on('acquire', (client) => {
-  console.log('Client acquired from pool');
-});
+  pool.on('acquire', (client) => {
+    console.log('Client acquired from pool');
+  });
 
-pool.on('remove', (client) => {
-  console.log('Client removed from pool');
-});
+  pool.on('remove', (client) => {
+    console.log('Client removed from pool');
+  });
+}
 
 // Function to check database connectivity
 const checkDatabaseConnection = async () => {
@@ -108,7 +111,9 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const closePool = async () => {
   try {
     await pool.end();
-    console.log('Database pool closed');
+    if (!isTestEnv) {
+      console.log('Database pool closed');
+    }
   } catch (error) {
     console.error('Error closing database pool:', error);
   }

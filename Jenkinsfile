@@ -190,6 +190,18 @@ pipeline{
             }
         }
 
+        stage('Debug kubectl in Jenkins') {
+            steps {
+                sh '''
+                whoami
+                echo "PATH=$PATH"
+                which kubectl
+                kubectl version --client
+                '''
+            }
+        }
+
+
 
         /* =========================
             DEPLOY TO DEV ENVIRONMENT

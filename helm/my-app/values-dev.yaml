@@ -29,6 +29,27 @@ resources:
     cpu: 100m
     memory: 128Mi
 
+# Development environment - faster probes for quicker feedback
+livenessProbe:
+  path: /api/live
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  path: /api/ready
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  enabled: true
+  path: /api/health
+  periodSeconds: 3
+  failureThreshold: 20
+
 autoscaling:
   enabled: false
 

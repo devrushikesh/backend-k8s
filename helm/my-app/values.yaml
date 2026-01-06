@@ -29,6 +29,39 @@ resources:
     cpu: 100m
     memory: 128Mi
 
+# Liveness probe configuration
+# Checks if container is alive - restarts on failure
+livenessProbe:
+  path: /api/live
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+# Readiness probe configuration
+# Checks if container is ready to serve traffic
+# Removes from service endpoints on failure
+readinessProbe:
+  path: /api/ready
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 3
+
+# Startup probe configuration
+# Gives app time to start before other probes begin
+# Useful for slow-starting applications
+startupProbe:
+  enabled: true
+  path: /api/health
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 30
+
 autoscaling:
   enabled: false
 

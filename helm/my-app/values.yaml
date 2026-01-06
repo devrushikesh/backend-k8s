@@ -15,10 +15,9 @@ service:
 env:
   DB_HOST: postgres
   DB_PORT: "5432"
-  DB_USER: root
-  DB_PASSWORD: root
+  DB_USER: postgres
+  DB_PASSWORD: postgres
   DB_NAME: todo_db
-  DB_NAME_TEST: todo_db_test
   PORT: "3001"
 
 resources:

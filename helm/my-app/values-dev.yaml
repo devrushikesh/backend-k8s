@@ -36,4 +36,4 @@ volumes: []
 volumeMounts: []
 
 imagePullSecrets:
-  - "image-pull-secret"
+  - name: "ecr-secret"

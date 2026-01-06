@@ -220,7 +220,7 @@ pipeline{
 
                 withCredentials([file(credentialsId: 'jenkins-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
-                        kubectl create secret docker-registry image-pull-secret \
+                        kubectl create secret docker-registry ecr-secret \
                         --docker-server=759210286431.dkr.ecr.ap-south-1.amazonaws.com \
                         --docker-username=AWS \
                         --docker-password="$ECR_TOKEN" \

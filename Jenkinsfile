@@ -203,7 +203,35 @@ pipeline{
             }
             steps{
                 echo 'Deploying to dev environment of k8s...'
+
+                withCredentials([file(credentialsId: 'jenkins-kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh """
+                        helm upgrade --install my-app helm/my-app \
+                        -n dev \
+                        --set image.tag=${IMAGE_TAG}
+
+                    """
+                }
+
             }
         }
+
+        /* =========================
+            DEPLOY TO PROD ENVIRONMENT
+           ========================= */
+        stage('Deploy to Prod Environment'){
+            when{
+                allOf {
+                    expression { env.CHANGE_ID == null }   // NOT a PR
+                    branch 'main'
+                }
+            }
+            steps{
+                echo 'Deploying to production environment of k8s...'
+            }
+        }
+
+
+
     }
 }

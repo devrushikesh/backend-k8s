@@ -3,3 +3,4 @@ __tests__
 Jenkinsfile
 TESTING.md
 .env*
+helm

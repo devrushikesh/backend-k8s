@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: 759210286431.dkr.ecr.ap-south-1.amazonaws.com/todo-backend
+  tag: "4f619a8"
+  pullPolicy: IfNotPresent
+
+podLabels:
+  tier: backend
+
+service:
+  type: ClusterIP
+  port: 3001
+
+env:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_USER: root
+  DB_PASSWORD: root
+  DB_NAME: todo_db
+  DB_NAME_TEST: todo_db_test
+  PORT: "5000"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+volumes: []
+volumeMounts: []
+
+imagePullSecrets:
+  - "image-pull-secret"

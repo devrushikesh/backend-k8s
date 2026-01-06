@@ -223,10 +223,10 @@ pipeline{
                         kubectl create secret docker-registry ecr-secret \
                         --docker-server=759210286431.dkr.ecr.ap-south-1.amazonaws.com \
                         --docker-username=AWS \
-                        --docker-password="$ECR_PASSWORD" \
+                        --docker-password="$ECR_TOKEN" \
                         -n dev \
                         --dry-run=client -o yaml | kubectl apply -f -
-                        
+
                         helm upgrade --install my-app helm/my-app \
                         -n dev \
                         --set image.tag=${IMAGE_TAG}

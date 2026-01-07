@@ -1,6 +1,6 @@
 require('dotenv').config();
 const app = require('./app');
-const { checkDatabaseConnection, closePool } = require('./db');
+const { checkDatabaseConnection, initializeDatabase, closePool } = require('./db');
 
 const PORT = process.env.PORT || 3001;
 
@@ -15,6 +15,10 @@ const startServer = async () => {
     
     if (isConnected) {
       console.log('✓ Database is ready');
+      
+      // Initialize database schema (create tables if they don't exist)
+      console.log('🔧 Initializing database schema...');
+      await initializeDatabase();
     } else {
       console.warn('⚠️  Database not ready yet - will retry on requests');
       console.warn('⚠️  App will still start and accept health checks');

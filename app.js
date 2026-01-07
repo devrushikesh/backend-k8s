@@ -4,8 +4,13 @@ const { pool, checkDatabaseConnection } = require('./db');
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware - CORS configuration to allow all origins
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false
+}));
 app.use(express.json());
 
 // Routes

@@ -228,8 +228,12 @@ pipeline{
                         --dry-run=client -o yaml | kubectl apply -f -
 
                         helm upgrade --install my-app helm/my-app \
+                        -f helm/my-app/values-dev.yaml \
                         -n dev \
-                        --set image.tag=${IMAGE_TAG}
+                        --set image.tag=${IMAGE_TAG} \
+                        --wait \
+                        --timeout 5m \
+                        --atomic
                     """
                 }
 
@@ -248,10 +252,31 @@ pipeline{
             }
             steps{
                 echo 'Deploying to production environment of k8s...'
+
+                script{
+                    env.ECR_TOKEN = sh(script: "aws ecr get-login-password --region ap-south-1", returnStdout: true).trim()
+                }
+
+                withCredentials([file(credentialsId: 'jenkins-kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh """
+                        kubectl create secret docker-registry ecr-secret \
+                        --docker-server=759210286431.dkr.ecr.ap-south-1.amazonaws.com \
+                        --docker-username=AWS \
+                        --docker-password="$ECR_TOKEN" \
+                        -n prod \
+                        --dry-run=client -o yaml | kubectl apply -f -
+
+                        helm upgrade --install my-app helm/my-app \
+                        -f helm/my-app/values-prod.yaml \
+                        -n prod \
+                        --set image.tag=${IMAGE_TAG} \
+                        --wait \
+                        --timeout 5m \
+                        --atomic
+                    """
+                }
+
             }
         }
-
-
-
     }
 }

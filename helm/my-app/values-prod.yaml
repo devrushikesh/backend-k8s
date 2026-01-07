@@ -9,8 +9,10 @@ podLabels:
   tier: backend
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 3001
+  targetPort: 3001
+  nodePort: 35000
 
 env:
   DB_HOST: postgres
@@ -22,33 +24,32 @@ env:
 
 resources:
   limits:
-    cpu: 200m
-    memory: 256Mi
+    cpu: 100m
+    memory: 128Mi
   requests:
     cpu: 100m
     memory: 128Mi
 
-# Production environment - more conservative probe settings
+# Development environment - faster probes for quicker feedback
 livenessProbe:
   path: /api/live
-  initialDelaySeconds: 60
-  periodSeconds: 15
-  timeoutSeconds: 10
-  failureThreshold: 5
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
 
 readinessProbe:
   path: /api/ready
-  initialDelaySeconds: 20
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 5
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
 
 startupProbe:
   enabled: true
   path: /api/health
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 30
+  periodSeconds: 3
+  failureThreshold: 20
 
 autoscaling:
   enabled: false

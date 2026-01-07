@@ -9,14 +9,16 @@ podLabels:
   tier: backend
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 3001
+  targetPort: 3001
+  nodePort: 35000
 
 env:
   DB_HOST: postgres
   DB_PORT: "5432"
-  DB_USER: postgres
-  DB_PASSWORD: postgres
+  DB_USER: root
+  DB_PASSWORD: root
   DB_NAME: todo_db
   PORT: "3001"
 
@@ -28,38 +30,26 @@ resources:
     cpu: 100m
     memory: 128Mi
 
-# Liveness probe configuration
-# Checks if container is alive - restarts on failure
+# Development environment - faster probes for quicker feedback
 livenessProbe:
   path: /api/live
-  initialDelaySeconds: 30
+  initialDelaySeconds: 15
   periodSeconds: 10
   timeoutSeconds: 5
-  successThreshold: 1
   failureThreshold: 3
 
-# Readiness probe configuration
-# Checks if container is ready to serve traffic
-# Removes from service endpoints on failure
 readinessProbe:
   path: /api/ready
-  initialDelaySeconds: 10
+  initialDelaySeconds: 5
   periodSeconds: 5
   timeoutSeconds: 3
-  successThreshold: 1
   failureThreshold: 3
 
-# Startup probe configuration
-# Gives app time to start before other probes begin
-# Useful for slow-starting applications
 startupProbe:
   enabled: true
   path: /api/health
-  initialDelaySeconds: 0
-  periodSeconds: 5
-  timeoutSeconds: 3
-  successThreshold: 1
-  failureThreshold: 30
+  periodSeconds: 3
+  failureThreshold: 20
 
 autoscaling:
   enabled: false

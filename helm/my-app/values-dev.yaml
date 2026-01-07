@@ -12,7 +12,7 @@ service:
   type: NodePort
   port: 3001
   targetPort: 3001
-  nodePort: 35000
+  nodePort: 32000
 
 env:
   DB_HOST: postgres

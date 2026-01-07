@@ -232,7 +232,7 @@ pipeline{
                         -n dev \
                         --set image.tag=${IMAGE_TAG} \
                         --wait \
-                        --timeout 5m \
+                        --timeout 1m \
                         --atomic
                     """
                 }
